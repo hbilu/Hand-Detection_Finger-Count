@@ -93,29 +93,32 @@ def roi_draw(img, img_paths):
     return img
 
 
-landmarker = mp.solutions.hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
-camera_video = cv2.VideoCapture(0)
-camera_video.set(3, 1280)
-camera_video.set(4, 960)
-cv2.namedWindow('Hand Detection & Finger Counting', cv2.WINDOW_NORMAL)
+def main():
+    landmarker = mp.solutions.hands.Hands(static_image_mode=False, max_num_hands=2, min_detection_confidence=0.5)
+    camera_video = cv2.VideoCapture(0)
+    camera_video.set(3, 1280)
+    camera_video.set(4, 720)
+    cv2.namedWindow('Hand Detection & Finger Counting', cv2.WINDOW_NORMAL)
+    while camera_video.isOpened():
+        fingers_statuses = {}
+        counting = {}
+        img_path = {}
+        read, frame = camera_video.read()
+        if not read:
+            continue
+        frame = cv2.flip(frame, 1)
+        frame, results = detect_hand_landmarks(frame, landmarker)
+        if results.multi_hand_landmarks:
+            frame, fingers_statuses, counting = count_fingers(frame, results)
+        frame, img_path = paint_fingers(frame, results, fingers_statuses, counting)
+        frame = roi_draw(frame, img_path)
+        cv2.imshow('Hand Detection & Finger Counting', frame)
+        k = cv2.waitKey(1) & 0xFF
+        if k == 27:
+            break
+    camera_video.release()
+    cv2.destroyAllWindows()
 
-while camera_video.isOpened():
-    fingers_statuses = {}
-    counting = {}
-    img_path = {}
-    read, frame = camera_video.read()
-    if not read:
-        continue
-    frame = cv2.flip(frame, 1)
-    frame, results = detect_hand_landmarks(frame, landmarker)
-    if results.multi_hand_landmarks:
-        frame, fingers_statuses, counting = count_fingers(frame, results)
-    frame, img_path = paint_fingers(frame, results, fingers_statuses, counting)
-    frame = roi_draw(frame, img_path)
-    cv2.imshow('Hand Detection & Finger Counting', frame)
-    k = cv2.waitKey(1) & 0xFF
-    if k == 27:
-        break
 
-camera_video.release()
-cv2.destroyAllWindows()
+if __name__ == "__main__":
+   main()
