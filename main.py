@@ -65,7 +65,6 @@ def count_fingers(img, result_hl):
 
 
 def paint_fingers(img, result_hl, fingers_st, count):
-    output_img = img.copy()
     img_paths = {'left': ['left_notd.png'], 'right': ['right_notd.png']}
     if result_hl.multi_hand_landmarks:
         for index, hand in enumerate(result_hl.multi_handedness):
@@ -77,7 +76,7 @@ def paint_fingers(img, result_hl, fingers_st, count):
                 for finger, status in fingers_st.items():
                     if status and finger.split("_")[0] == hand_label.upper():
                         img_paths[hand_label.lower()].append(finger.lower() + '.png')
-    return output_img, img_paths
+    return img_paths
 
 
 def roi_draw(img, img_paths):
@@ -110,7 +109,7 @@ def main():
         frame, results = detect_hand_landmarks(frame, landmarker)
         if results.multi_hand_landmarks:
             frame, fingers_statuses, counting = count_fingers(frame, results)
-        frame, img_path = paint_fingers(frame, results, fingers_statuses, counting)
+        img_path = paint_fingers(frame, results, fingers_statuses, counting)
         frame = roi_draw(frame, img_path)
         cv2.imshow('Hand Detection & Finger Counting', frame)
         k = cv2.waitKey(1) & 0xFF
